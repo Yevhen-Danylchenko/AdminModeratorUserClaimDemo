@@ -6,18 +6,18 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace AdminModeratorUserClaimDemo.Controllers
 {
-    public class SuperAdminController : Controller
+    public class AdminController : Controller
     {
+
         private readonly ApplicationDbContext _context;
         private readonly UserManager<User> _userManager;
 
-        public SuperAdminController(ApplicationDbContext context, UserManager<User> userManager)
+        public AdminController(ApplicationDbContext context, UserManager<User> userManager)
         {
             _context = context;
             _userManager = userManager;
         }
-
-        // GET: SuperAdmin
+        // GET: Admin
         public IActionResult Index()
         {
             var users = _context.Users.
@@ -34,7 +34,7 @@ namespace AdminModeratorUserClaimDemo.Controllers
             return View(users);
         }
 
-        // GET: SuperAdmin/Register
+        // GET: Admin/Register
         [HttpGet]
         public IActionResult Register()
         {
@@ -42,7 +42,7 @@ namespace AdminModeratorUserClaimDemo.Controllers
             return View();
         }
 
-        // POST: SuperAdmin/Register
+        // POST: Admin/Register
         [HttpPost]
         public async Task<IActionResult> Register(User model)
         {
@@ -75,7 +75,7 @@ namespace AdminModeratorUserClaimDemo.Controllers
             return View(model);
         }
 
-        // GET: SuperAdmin/EditUser/5
+        // GET: Admin/EditUser/5
         [HttpGet]
         public IActionResult EditUser(string id)
         {
@@ -97,7 +97,7 @@ namespace AdminModeratorUserClaimDemo.Controllers
             return View(model);
         }
 
-        // POST: SuperAdmin/EditUser/5
+        // POST: Admin/EditUser/5
         [HttpPost]
         public async Task<IActionResult> EditUser(string id, User model)
         {
@@ -138,7 +138,7 @@ namespace AdminModeratorUserClaimDemo.Controllers
             return View(model);
         }
 
-        // POST: SuperAdmin/DeleteUser/5
+        // POST: Admin/DeleteUser/5
         [HttpPost]
         public async Task<IActionResult> DeleteUser(string id)
         {
@@ -158,7 +158,86 @@ namespace AdminModeratorUserClaimDemo.Controllers
                 return RedirectToAction(nameof(Index));
             }
         }
+
+        // GET: Admin/Products
+        [HttpGet]
+        public IActionResult Products()
+        {
+            var products = _context.Products.ToList();
+            return View(products);
+        }
+
+        // GET: Admin/CreateProduct
+        [HttpGet]
+        public IActionResult CreateProduct()
+        {
+            return View();
+        }
+
+        // POST: Admin/CreateProduct
+        [HttpPost]
+        public IActionResult CreateProduct(Product model)
+        {
+            if (ModelState.IsValid)
+            {
+                model.CreatedAt = DateTime.UtcNow;
+                _context.Products.Add(model);
+                _context.SaveChanges();
+                return RedirectToAction(nameof(Products));
+            }
+            return View(model);
+        }
+
+        // GET: Admin/UpdateProduct/5
+        [HttpGet]
+        public IActionResult UpdateProduct(int id)
+        {
+            var product = _context.Products.FirstOrDefault(x => x.Id == id);
+            if (product == null)
+            {
+                return NotFound();
+            }
+            return View(product);
+        }
+
+        // POST: Admin/UpdateProduct/5
+        [HttpPost]
+        public IActionResult UpdateProduct(int id, Product model)
+        {
+            if (id != model.Id)
+            {
+                return NotFound();
+            }
+            if (ModelState.IsValid)
+            {
+                var product = _context.Products.FirstOrDefault(x => x.Id == id);
+                if (product == null)
+                {
+                    return NotFound();
+                }
+                product.Name = model.Name;
+                product.Description = model.Description;
+                product.Price = model.Price;
+                product.Status = model.Status;
+                _context.Products.Update(product);
+                _context.SaveChanges();
+                return RedirectToAction(nameof(Products));
+            }
+            return View(model);
+        }
+
+        // POST: Admin/DeleteProduct/5
+        [HttpPost]
+        public IActionResult DeleteProduct(int id)
+        {
+            var product = _context.Products.FirstOrDefault(x => x.Id == id);
+            if (product == null)
+            {
+                return NotFound();
+            }
+            _context.Products.Remove(product);
+            _context.SaveChanges();
+            return RedirectToAction(nameof(Products));
+        }
     }
-
 }
-
