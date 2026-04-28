@@ -137,6 +137,28 @@ namespace AdminModeratorUserClaimDemo.Controllers
             ViewBag.Products = new SelectList(_context.Products, "Id", "Name", model.ProductId);
             return View(model);
         }
+
+        // POST: SuperAdmin/DeleteUser/5
+        [HttpPost]
+        public async Task<IActionResult> DeleteUser(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null)
+            {
+                return NotFound();
+            }
+            var result = await _userManager.DeleteAsync(user);
+            if (result.Succeeded)
+            {
+                return RedirectToAction(nameof(Index));
+            }
+            else
+            {
+                // Handle deletion errors if necessary
+                return RedirectToAction(nameof(Index));
+            }
+        }
     }
+
 }
 
