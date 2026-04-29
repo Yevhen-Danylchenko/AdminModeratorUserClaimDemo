@@ -35,12 +35,16 @@ namespace AdminModeratorUserClaimDemo
                 var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                 db.Database.Migrate();
 
-                // Якщо у тебе є DbInitializer
+                // Призначаємо роль у DbInitializer
                 DbInitializer.Seed(db);
 
                 var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-                if (!await roleManager.RoleExistsAsync("Admin"))
-                    await roleManager.CreateAsync(new IdentityRole("Admin"));
+                var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
+
+                await DbInitializer.SeedSuperAdminAsync(userManager, roleManager);
+                //var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+                //if (!await roleManager.RoleExistsAsync("Admin"))
+                //    await roleManager.CreateAsync(new IdentityRole("Admin"));
             }
 
             // Configure the HTTP request pipeline.
