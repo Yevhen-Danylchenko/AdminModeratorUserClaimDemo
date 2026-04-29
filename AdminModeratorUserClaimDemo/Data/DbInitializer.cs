@@ -1,9 +1,47 @@
 ﻿using AdminModeratorUserClaimDemo.Models;
+using Microsoft.AspNetCore.Identity;
 
 namespace AdminModeratorUserClaimDemo.Data
 {
     public static class DbInitializer
     {
+        public static async Task SeedSuperAdminAsync(
+            UserManager<User> userManager,
+            RoleManager<IdentityRole> roleManager)
+        {
+            // 1. Створюємо роль SuperAdmin, якщо її немає
+            if (!await roleManager.RoleExistsAsync("SuperAdmin"))
+            {
+                await roleManager.CreateAsync(new IdentityRole("SuperAdmin"));
+            }
+
+            // 2. Створюємо користувача SuperAdmin, якщо його немає
+            var superAdminEmail = "superadmin@ukr.net";
+            var superAdminUser = await userManager.FindByEmailAsync(superAdminEmail);
+
+            if (superAdminUser == null)
+            {
+                superAdminUser = new User
+                {
+                    UserName = superAdminEmail,
+                    Email = superAdminEmail,
+                    EmailConfirmed = true
+                };
+
+                var result = await userManager.CreateAsync(superAdminUser, "SuperAdmin123!");
+                if (!result.Succeeded)
+                {
+                    throw new Exception("Не вдалося створити SuperAdmin користувача: " +
+                                        string.Join(", ", result.Errors.Select(e => e.Description)));
+                }
+            }
+
+            // 3. Призначаємо роль SuperAdmin
+            if (!await userManager.IsInRoleAsync(superAdminUser, "SuperAdmin"))
+            {
+                await userManager.AddToRoleAsync(superAdminUser, "SuperAdmin");
+            }
+        }
         public static void Seed(ApplicationDbContext context)
         {
             // Ensure the database is created
