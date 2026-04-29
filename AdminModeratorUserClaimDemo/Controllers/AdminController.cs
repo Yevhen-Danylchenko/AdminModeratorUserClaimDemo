@@ -1,5 +1,6 @@
 ﻿using AdminModeratorUserClaimDemo.Data;
 using AdminModeratorUserClaimDemo.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -18,6 +19,7 @@ namespace AdminModeratorUserClaimDemo.Controllers
             _userManager = userManager;
         }
         // GET: Admin
+        [Authorize(Roles = "Admin")]
         public IActionResult Index()
         {
             var users = _context.Users.
@@ -36,6 +38,7 @@ namespace AdminModeratorUserClaimDemo.Controllers
 
         // GET: Admin/Register
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public IActionResult Register()
         {
             ViewBag.Products = new SelectList(_context.Products, "Id", "Name");
@@ -44,6 +47,7 @@ namespace AdminModeratorUserClaimDemo.Controllers
 
         // POST: Admin/Register
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Register(User model)
         {
             if (ModelState.IsValid)
@@ -77,6 +81,7 @@ namespace AdminModeratorUserClaimDemo.Controllers
 
         // GET: Admin/EditUser/5
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public IActionResult EditUser(string id)
         {
             var user = _context.Users.Find(id);
@@ -99,6 +104,7 @@ namespace AdminModeratorUserClaimDemo.Controllers
 
         // POST: Admin/EditUser/5
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> EditUser(string id, User model)
         {
             if (id != model.Id)
@@ -140,6 +146,7 @@ namespace AdminModeratorUserClaimDemo.Controllers
 
         // POST: Admin/DeleteUser/5
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteUser(string id)
         {
             var user = await _userManager.FindByIdAsync(id);
@@ -161,6 +168,7 @@ namespace AdminModeratorUserClaimDemo.Controllers
 
         // GET: Admin/Products
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public IActionResult Products()
         {
             var products = _context.Products.ToList();
@@ -169,6 +177,7 @@ namespace AdminModeratorUserClaimDemo.Controllers
 
         // GET: Admin/CreateProduct
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public IActionResult CreateProduct()
         {
             return View();
@@ -176,6 +185,7 @@ namespace AdminModeratorUserClaimDemo.Controllers
 
         // POST: Admin/CreateProduct
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public IActionResult CreateProduct(Product model)
         {
             if (ModelState.IsValid)
@@ -190,6 +200,7 @@ namespace AdminModeratorUserClaimDemo.Controllers
 
         // GET: Admin/UpdateProduct/5
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public IActionResult UpdateProduct(int id)
         {
             var product = _context.Products.FirstOrDefault(x => x.Id == id);
@@ -202,6 +213,7 @@ namespace AdminModeratorUserClaimDemo.Controllers
 
         // POST: Admin/UpdateProduct/5
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public IActionResult UpdateProduct(int id, Product model)
         {
             if (id != model.Id)
@@ -228,6 +240,7 @@ namespace AdminModeratorUserClaimDemo.Controllers
 
         // POST: Admin/DeleteProduct/5
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public IActionResult DeleteProduct(int id)
         {
             var product = _context.Products.FirstOrDefault(x => x.Id == id);

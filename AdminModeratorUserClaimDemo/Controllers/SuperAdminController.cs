@@ -1,5 +1,6 @@
 ﻿using AdminModeratorUserClaimDemo.Data;
 using AdminModeratorUserClaimDemo.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -18,6 +19,7 @@ namespace AdminModeratorUserClaimDemo.Controllers
         }
 
         // GET: SuperAdmin
+        [Authorize(Roles = "SuperAdmin")]
         public IActionResult Index()
         {
             var users = _context.Users.
@@ -36,6 +38,7 @@ namespace AdminModeratorUserClaimDemo.Controllers
 
         // GET: SuperAdmin/Register
         [HttpGet]
+        [Authorize(Roles = "SuperAdmin")]
         public IActionResult Register()
         {
             ViewBag.Products = new SelectList(_context.Products, "Id", "Name");
@@ -44,6 +47,7 @@ namespace AdminModeratorUserClaimDemo.Controllers
 
         // POST: SuperAdmin/Register
         [HttpPost]
+        [Authorize(Roles = "SuperAdmin")]
         public async Task<IActionResult> Register(User model)
         {
             if (ModelState.IsValid)
@@ -77,6 +81,7 @@ namespace AdminModeratorUserClaimDemo.Controllers
 
         // GET: SuperAdmin/EditUser/5
         [HttpGet]
+        [Authorize(Roles = "SuperAdmin")]
         public IActionResult EditUser(string id)
         {
             var user = _context.Users.Find(id);
@@ -99,6 +104,7 @@ namespace AdminModeratorUserClaimDemo.Controllers
 
         // POST: SuperAdmin/EditUser/5
         [HttpPost]
+        [Authorize(Roles = "SuperAdmin")]
         public async Task<IActionResult> EditUser(string id, User model)
         {
             if (id != model.Id)
@@ -140,6 +146,7 @@ namespace AdminModeratorUserClaimDemo.Controllers
 
         // POST: SuperAdmin/DeleteUser/5
         [HttpPost]
+        [Authorize(Roles = "SuperAdmin")]
         public async Task<IActionResult> DeleteUser(string id)
         {
             var user = await _userManager.FindByIdAsync(id);
