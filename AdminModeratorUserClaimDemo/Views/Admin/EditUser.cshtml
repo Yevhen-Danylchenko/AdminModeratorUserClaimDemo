@@ -1,0 +1,37 @@
+﻿@model AdminModeratorUserClaimDemo.Models.User
+
+@{
+    ViewData["Title"] = "Редагування користувача";
+}
+
+<h2>Редагування користувача</h2>
+
+<form asp-action="EditUser" method="post">
+    <input type="hidden" asp-for="Id" />
+
+    <div class="mb-3">
+        <label asp-for="UserName" class="form-label"></label>
+        <input asp-for="UserName" class="form-control" />
+        <span asp-validation-for="UserName" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Email" class="form-label"></label>
+        <input asp-for="Email" class="form-control" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Name" class="form-label"></label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+    <div class="form-check mb-3">
+        <input asp-for="IsAdmin" class="form-check-input" />
+        <label asp-for="IsAdmin" class="form-check-label">Адмін?</label>
+    </div>
+    <div class="mb-3">
+        <label asp-for="ProductId" class="form-label">Продукт</label>
+        <select asp-for="ProductId" asp-items="ViewBag.Products" class="form-select"></select>
+    </div>
+    <button type="submit" class="btn btn-primary">Зберегти</button>
+</form>
+
