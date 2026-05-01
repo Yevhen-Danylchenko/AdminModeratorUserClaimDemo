@@ -1,19 +1,26 @@
 using AdminModeratorUserClaimDemo.Data;
 using AdminModeratorUserClaimDemo.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
+using Microsoft.AspNetCore.Authorization;
 
 namespace AdminModeratorUserClaimDemo.Controllers
 {
     public class HomeController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<User> _userManager;
 
-        public HomeController(ApplicationDbContext context)
+        public HomeController(ApplicationDbContext context, UserManager<User> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
+
+        [HttpGet]
+        [Authorize(Roles = "SuperAdmin,Admin,Moderator,User")]
         public IActionResult Index()
         {
             var products = _context.Products.ToList();

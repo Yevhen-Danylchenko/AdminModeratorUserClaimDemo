@@ -36,6 +36,28 @@ namespace AdminModeratorUserClaimDemo.Controllers
             return View(users);
         }
 
+        // GET: SuperAdmin/Login
+        [HttpGet]
+        public IActionResult Login()
+        {
+            return View();
+        }
+
+        // POST: SuperAdmin/Login
+        [HttpPost]
+        public async Task<IActionResult> Login(string username, string password)
+        {
+            var user = await _userManager.FindByNameAsync(username);
+            if (user != null && await _userManager.CheckPasswordAsync(user, password))
+            {
+                // Sign in the user
+                await _userManager.AddClaimAsync(user, new System.Security.Claims.Claim("Role", "SuperAdmin"));
+                return RedirectToAction(nameof(Index));
+            }
+            ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+            return View();
+        }
+
         // GET: SuperAdmin/Register
         [HttpGet]
         [Authorize(Roles = "SuperAdmin")]
