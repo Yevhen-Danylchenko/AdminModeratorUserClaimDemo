@@ -33,18 +33,13 @@ namespace AdminModeratorUserClaimDemo
             using (var scope = app.Services.CreateScope())
             {
                 var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                db.Database.Migrate();
 
-                // Призначаємо роль у DbInitializer
-                DbInitializer.Seed(db);
+                await db.Database.MigrateAsync();
 
                 var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
                 var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
 
-                await DbInitializer.SeedSuperAdminAsync(userManager, roleManager);
-                //var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-                //if (!await roleManager.RoleExistsAsync("Admin"))
-                //    await roleManager.CreateAsync(new IdentityRole("Admin"));
+                await DbInitializer.SeedAsync(db, userManager, roleManager);
             }
 
             // Configure the HTTP request pipeline.
@@ -65,7 +60,7 @@ namespace AdminModeratorUserClaimDemo
             app.MapStaticAssets();
             app.MapControllerRoute(
                 name: "default",
-                pattern: "{controller=Home}/{action=Index}/{id?}")
+                pattern: "{controller=SuperAdmin}/{action=Login}/{id?}")
                 .WithStaticAssets();
 
             app.Run();

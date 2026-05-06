@@ -22,8 +22,21 @@
             <tr>
                 <td>@product.Name</td>
                 <td>@product.Description</td>
-                <td>@product.Price</td>
-                <td>@product.Status</td>
+                <td>@product.Price.ToString("C")</td> <!-- формат ціни -->
+                <td>
+                    @switch (product.Status)
+                    {
+                        case ProductStatusEnum.available:
+                            @:Доступний
+                            break;
+                        case ProductStatusEnum.unavailable:
+                            @:Недоступний
+                            break;
+                        default:
+                            @product.Status
+                            break;
+                    }
+                </td>
                 <td>
                     <a asp-action="UpdateProduct" asp-route-id="@product.Id" class="btn btn-sm btn-primary">Редагувати</a>
                     <form asp-action="DeleteProduct" asp-route-id="@product.Id" method="post" style="display:inline">
@@ -36,4 +49,5 @@
 </table>
 
 <a asp-action="CreateProduct" class="btn btn-success">Додати продукт</a>
+
 

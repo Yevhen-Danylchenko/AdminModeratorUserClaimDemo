@@ -3,6 +3,6 @@
     public enum ProductStatusEnum
     {
         available,
-        out_of_stock,
+        unavailable
     }
 }

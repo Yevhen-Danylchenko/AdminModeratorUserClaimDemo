@@ -5,21 +5,26 @@ using AdminModeratorUserClaimDemo.Models;
 
 namespace AdminModeratorUserClaimDemo.Data
 {
-    public class ApplicationDbContext: IdentityDbContext<User, IdentityRole, string>
+    public class ApplicationDbContext : IdentityDbContext<User, IdentityRole, string>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
         {
         }
+
         public DbSet<Product> Products { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
-            // Configure the relationship between User and Product
+
+            // Один користувач має багато продуктів
             builder.Entity<User>()
-                .HasOne(u => u.Products)
-                .WithMany()
-                .HasForeignKey(u => u.ProductId);
-        }    
+                .HasMany(u => u.Products)
+                .WithOne(p => p.User)
+                .HasForeignKey(p => p.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        }
     }
 }
+

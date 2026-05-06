@@ -1,4 +1,4 @@
-﻿@model AdminModeratorUserClaimDemo.Models.User
+﻿@model AdminModeratorUserClaimDemo.ViewModels.RegisterViewModel
 
 @{
     ViewData["Title"] = "Реєстрація користувача";
@@ -22,18 +22,18 @@
         <input asp-for="Name" class="form-control" />
         <span asp-validation-for="Name" class="text-danger"></span>
     </div>
-    <div class="form-check mb-3">
-        <input asp-for="IsAdmin" class="form-check-input" />
-        <label asp-for="IsAdmin" class="form-check-label">Адмін?</label>
+    <div class="mb-3">
+        <label asp-for="IsAdmin" class="form-label">Роль</label>
+        <select asp-for="IsAdmin" class="form-select"
+                asp-items="Html.GetEnumSelectList<UserEnum>()"></select>
+        <span asp-validation-for="IsAdmin" class="text-danger"></span>
     </div>
     <div class="mb-3">
-        <label asp-for="ProductId" class="form-label">Продукт</label>
-        <select asp-for="ProductId" asp-items="ViewBag.Products" class="form-select"></select>
-    </div>
-    <div class="mb-3">
-        <label class="form-label">Пароль</label>
-        <input type="password" name="PasswordHash" class="form-control" />
+        <label asp-for="Password" class="form-label"></label>
+        <input asp-for="Password" type="password" class="form-control" />
+        <span asp-validation-for="Password" class="text-danger"></span>
     </div>
     <button type="submit" class="btn btn-primary">Зареєструвати</button>
 </form>
+
 

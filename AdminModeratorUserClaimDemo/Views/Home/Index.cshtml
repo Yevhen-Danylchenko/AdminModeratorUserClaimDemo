@@ -22,11 +22,25 @@
             <tr>
                 <td>@product.Name</td>
                 <td>@product.Description</td>
-                <td>@product.Price.ToString("C")</td>
-                <td>@product.Status</td>
+                <td>@product.Price.ToString("F2") грн</td> <!-- форматована ціна -->
+                <td>
+                    @switch (product.Status)
+                    {
+                        case ProductStatusEnum.available:
+                            @:Доступний
+                            break;
+                        case ProductStatusEnum.unavailable:
+                            @:Недоступний
+                            break;
+                        default:
+                            @product.Status
+                            break;
+                    }
+                </td>
                 <td>@product.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
             </tr>
         }
     </tbody>
 </table>
+
 

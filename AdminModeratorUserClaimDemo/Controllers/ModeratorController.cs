@@ -1,9 +1,10 @@
 ﻿using AdminModeratorUserClaimDemo.Data;
 using AdminModeratorUserClaimDemo.Models;
+using AdminModeratorUserClaimDemo.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 
 namespace AdminModeratorUserClaimDemo.Controllers
 {
@@ -11,43 +12,51 @@ namespace AdminModeratorUserClaimDemo.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<User> _userManager;
+        private readonly SignInManager<User> _signInManager;
 
-        public ModeratorController(ApplicationDbContext context, UserManager<User> userManager)
+        public ModeratorController(ApplicationDbContext context, UserManager<User> userManager, SignInManager<User> signInManager)
         {
             _context = context;
             _userManager = userManager;
+            _signInManager = signInManager;
         }
+
         // GET: Moderator
         [Authorize(Roles = "Moderator")]
         public IActionResult Index()
         {
-            var users = _context.Users.
-                Select(u => new
+            var users = _context.Users
+                .Include(u => u.Products)
+                .ToList()
+                .Select(u => new UserViewModel
                 {
-                    u.Id,
-                    u.UserName,
-                    u.Email,
-                    u.Name,
-                    u.IsAdmin,
-                    ProductName = u.Products != null ? u.Products.Name : "No Product"
+                    Id = u.Id,
+                    UserName = u.UserName,
+                    Email = u.Email,
+                    Name = u.Name,
+                    IsAdmin = u.IsAdmin,
+                    ProductNames = u.Products.Any()
+                        ? string.Join(", ", u.Products.Select(p => p.Name))
+                        : "No Products"
                 })
                 .ToList();
+
             return View(users);
         }
+
 
         // GET: Moderator/Register
         [HttpGet]
         [Authorize(Roles = "Moderator")]
         public IActionResult Register()
         {
-            ViewBag.Products = new SelectList(_context.Products, "Id", "Name");
             return View();
         }
 
         // POST: Moderator/Register
         [HttpPost]
         [Authorize(Roles = "Moderator")]
-        public async Task<IActionResult> Register(User model)
+        public async Task<IActionResult> Register(User model, string password)
         {
             if (ModelState.IsValid)
             {
@@ -56,49 +65,36 @@ namespace AdminModeratorUserClaimDemo.Controllers
                     UserName = model.UserName,
                     Email = model.Email,
                     Name = model.Name,
-                    IsAdmin = model.IsAdmin,
-                    ProductId = model.ProductId
+                    IsAdmin = model.IsAdmin
                 };
 
-                var result = await _userManager.CreateAsync(user, model.PasswordHash);
+                var result = await _userManager.CreateAsync(user, password);
                 if (result.Succeeded)
                 {
                     return RedirectToAction(nameof(Index));
                 }
-                else
+
+                foreach (var error in result.Errors)
                 {
-                    foreach (var error in result.Errors)
-                    {
-                        ModelState.AddModelError(string.Empty, error.Description);
-                    }
+                    ModelState.AddModelError(string.Empty, error.Description);
                 }
             }
 
-            ViewBag.Products = new SelectList(_context.Products, "Id", "Name");
             return View(model);
         }
 
         // GET: Moderator/EditUser/5
         [HttpGet]
         [Authorize(Roles = "Moderator")]
-        public IActionResult EditUser(string id)
+        public async Task<IActionResult> EditUser(string id)
         {
-            var user = _context.Users.Find(id);
+            var user = await _userManager.FindByIdAsync(id);
             if (user == null)
             {
                 return NotFound();
             }
-            var model = new User
-            {
-                Id = user.Id,
-                UserName = user.UserName,
-                Email = user.Email,
-                Name = user.Name,
-                IsAdmin = user.IsAdmin,
-                ProductId = user.ProductId
-            };
-            ViewBag.Products = new SelectList(_context.Products, "Id", "Name", user.ProductId);
-            return View(model);
+
+            return View(user);
         }
 
         // POST: Moderator/EditUser/5
@@ -123,23 +119,19 @@ namespace AdminModeratorUserClaimDemo.Controllers
                 user.Email = model.Email;
                 user.Name = model.Name;
                 user.IsAdmin = model.IsAdmin;
-                user.ProductId = model.ProductId;
 
                 var result = await _userManager.UpdateAsync(user);
                 if (result.Succeeded)
                 {
                     return RedirectToAction(nameof(Index));
                 }
-                else
+
+                foreach (var error in result.Errors)
                 {
-                    foreach (var error in result.Errors)
-                    {
-                        ModelState.AddModelError(string.Empty, error.Description);
-                    }
+                    ModelState.AddModelError(string.Empty, error.Description);
                 }
             }
 
-            ViewBag.Products = new SelectList(_context.Products, "Id", "Name", model.ProductId);
             return View(model);
         }
 
@@ -153,19 +145,12 @@ namespace AdminModeratorUserClaimDemo.Controllers
             {
                 return NotFound();
             }
+
             var result = await _userManager.DeleteAsync(user);
-            if (result.Succeeded)
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            else
-            {
-                // Handle deletion errors if necessary
-                return RedirectToAction(nameof(Index));
-            }
+            return RedirectToAction(nameof(Index));
         }
 
-        // GET: Moderator/Products
+        // --- Products CRUD залишаються без змін ---
         [HttpGet]
         [Authorize(Roles = "Moderator")]
         public IActionResult Products()
@@ -174,7 +159,6 @@ namespace AdminModeratorUserClaimDemo.Controllers
             return View(products);
         }
 
-        // GET: Moderator/CreateProduct
         [HttpGet]
         [Authorize(Roles = "Moderator")]
         public IActionResult CreateProduct()
@@ -182,7 +166,6 @@ namespace AdminModeratorUserClaimDemo.Controllers
             return View();
         }
 
-        // POST: Moderator/CreateProduct
         [HttpPost]
         [Authorize(Roles = "Moderator")]
         public IActionResult CreateProduct(Product model)
@@ -197,7 +180,6 @@ namespace AdminModeratorUserClaimDemo.Controllers
             return View(model);
         }
 
-        // GET: Moderator/UpdateProduct/5
         [HttpGet]
         [Authorize(Roles = "Moderator")]
         public IActionResult UpdateProduct(int id)
@@ -210,7 +192,6 @@ namespace AdminModeratorUserClaimDemo.Controllers
             return View(product);
         }
 
-        // POST: Moderator/UpdateProduct/5
         [HttpPost]
         [Authorize(Roles = "Moderator")]
         public IActionResult UpdateProduct(int id, Product model)
@@ -237,7 +218,6 @@ namespace AdminModeratorUserClaimDemo.Controllers
             return View(model);
         }
 
-        // POST: Moderator/DeleteProduct/5
         [HttpPost]
         [Authorize(Roles = "Moderator")]
         public IActionResult DeleteProduct(int id)
@@ -253,3 +233,4 @@ namespace AdminModeratorUserClaimDemo.Controllers
         }
     }
 }
+

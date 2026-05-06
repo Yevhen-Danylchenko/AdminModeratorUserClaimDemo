@@ -1,6 +1,5 @@
 using AdminModeratorUserClaimDemo.Data;
 using AdminModeratorUserClaimDemo.Models;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
@@ -11,19 +10,17 @@ namespace AdminModeratorUserClaimDemo.Controllers
     public class HomeController : Controller
     {
         private readonly ApplicationDbContext _context;
-        private readonly UserManager<User> _userManager;
 
-        public HomeController(ApplicationDbContext context, UserManager<User> userManager)
+        public HomeController(ApplicationDbContext context)
         {
             _context = context;
-            _userManager = userManager;
         }
 
         [HttpGet]
-        [Authorize(Roles = "SuperAdmin,Admin,Moderator,User")]
+        [Authorize] // доступ для всіх автентифікованих користувачів
         public IActionResult Index()
         {
-            var products = _context.Products.ToList();
+            var products = _context.Products.Include(p => p.User).ToList();
             return View(products);
         }
 
@@ -39,3 +36,4 @@ namespace AdminModeratorUserClaimDemo.Controllers
         }
     }
 }
+

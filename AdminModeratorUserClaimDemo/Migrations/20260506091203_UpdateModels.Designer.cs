@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AdminModeratorUserClaimDemo.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260429044115_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260506091203_UpdateModels")]
+    partial class UpdateModels
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -43,7 +43,12 @@ namespace AdminModeratorUserClaimDemo.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("UserId")
+                        .HasColumnType("TEXT");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Products");
                 });
@@ -98,9 +103,6 @@ namespace AdminModeratorUserClaimDemo.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("ProductId")
-                        .HasColumnType("INTEGER");
-
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("TEXT");
 
@@ -119,8 +121,6 @@ namespace AdminModeratorUserClaimDemo.Migrations
                     b.HasIndex("NormalizedUserName")
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex");
-
-                    b.HasIndex("ProductId");
 
                     b.ToTable("AspNetUsers", (string)null);
                 });
@@ -257,13 +257,14 @@ namespace AdminModeratorUserClaimDemo.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("AdminModeratorUserClaimDemo.Models.User", b =>
+            modelBuilder.Entity("AdminModeratorUserClaimDemo.Models.Product", b =>
                 {
-                    b.HasOne("AdminModeratorUserClaimDemo.Models.Product", "Products")
-                        .WithMany()
-                        .HasForeignKey("ProductId");
+                    b.HasOne("AdminModeratorUserClaimDemo.Models.User", "User")
+                        .WithMany("Products")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
-                    b.Navigation("Products");
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -315,6 +316,11 @@ namespace AdminModeratorUserClaimDemo.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("AdminModeratorUserClaimDemo.Models.User", b =>
+                {
+                    b.Navigation("Products");
                 });
 #pragma warning restore 612, 618
         }

@@ -12,7 +12,7 @@ namespace AdminModeratorUserClaimDemo.Models
         [Required]
         public UserEnum IsAdmin { get; set; } = UserEnum.User;
 
-        public int? ProductId { get; set; }
-        public Product? Products { get; set; } 
+        // Навігаційна властивість: один користувач → багато продуктів
+        public ICollection<Product> Products { get; set; } = new List<Product>();
     }
 }

@@ -1,21 +1,30 @@
 ﻿using AdminModeratorUserClaimDemo.Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace AdminModeratorUserClaimDemo.Data
 {
     public static class DbInitializer
     {
-        public static async Task SeedSuperAdminAsync(
+        public static async Task SeedAsync(
+            ApplicationDbContext context,
             UserManager<User> userManager,
             RoleManager<IdentityRole> roleManager)
         {
-            // 1. Створюємо роль SuperAdmin, якщо її немає
-            if (!await roleManager.RoleExistsAsync("SuperAdmin"))
+            // Виконуємо міграції
+            await context.Database.MigrateAsync();
+
+            // --- Ролі ---
+            var roles = new[] { "SuperAdmin", "Admin", "Moderator" };
+            foreach (var role in roles)
             {
-                await roleManager.CreateAsync(new IdentityRole("SuperAdmin"));
+                if (!await roleManager.RoleExistsAsync(role))
+                {
+                    await roleManager.CreateAsync(new IdentityRole(role));
+                }
             }
 
-            // 2. Створюємо користувача SuperAdmin, якщо його немає
+            // --- SuperAdmin користувач ---
             var superAdminEmail = "superadmin@ukr.net";
             var superAdminUser = await userManager.FindByEmailAsync(superAdminEmail);
 
@@ -36,39 +45,32 @@ namespace AdminModeratorUserClaimDemo.Data
                 }
             }
 
-            // 3. Призначаємо роль SuperAdmin
             if (!await userManager.IsInRoleAsync(superAdminUser, "SuperAdmin"))
             {
                 await userManager.AddToRoleAsync(superAdminUser, "SuperAdmin");
             }
-        }
-        public static void Seed(ApplicationDbContext context)
-        {
-            // Ensure the database is created
-            context.Database.EnsureCreated();
 
-            // Check if there are any products already in the database
-            if (context.Products.Any())
+            // --- Продукти ---
+            if (!context.Products.Any())
             {
-                return; // Database has been seeded
+                var products = new List<Product>
+                {
+                    new Product { Name = "Wireless Mouse", Description = "Ergonomic wireless mouse with USB receiver", Price = 25.99m, Status = ProductStatusEnum.available, CreatedAt = DateTime.UtcNow },
+                    new Product { Name = "Mechanical Keyboard", Description = "RGB backlit mechanical keyboard with blue switches", Price = 79.50m, Status = ProductStatusEnum.available, CreatedAt = DateTime.UtcNow },
+                    new Product { Name = "Gaming Headset", Description = "Surround sound headset with noise-cancelling mic", Price = 59.99m, Status = ProductStatusEnum.available, CreatedAt = DateTime.UtcNow },
+                    new Product { Name = "USB-C Charger", Description = "Fast charging USB-C wall adapter 65W", Price = 34.99m, Status = ProductStatusEnum.available, CreatedAt = DateTime.UtcNow },
+                    new Product { Name = "Smartphone Stand", Description = "Adjustable aluminum stand for phones and tablets", Price = 15.00m, Status = ProductStatusEnum.available, CreatedAt = DateTime.UtcNow },
+                    new Product { Name = "Portable SSD", Description = "1TB external SSD with USB 3.2", Price = 129.99m, Status = ProductStatusEnum.available, CreatedAt = DateTime.UtcNow },
+                    new Product { Name = "Bluetooth Speaker", Description = "Waterproof portable speaker with deep bass", Price = 45.00m, Status = ProductStatusEnum.available, CreatedAt = DateTime.UtcNow },
+                    new Product { Name = "Webcam HD", Description = "1080p webcam with built-in microphone", Price = 39.99m, Status = ProductStatusEnum.available, CreatedAt = DateTime.UtcNow },
+                    new Product { Name = "Smartwatch", Description = "Fitness tracking smartwatch with heart rate monitor", Price = 199.00m, Status = ProductStatusEnum.available, CreatedAt = DateTime.UtcNow },
+                    new Product { Name = "Laptop Backpack", Description = "Water-resistant backpack with padded laptop compartment", Price = 49.99m, Status = ProductStatusEnum.available, CreatedAt = DateTime.UtcNow }
+                };
+
+                await context.Products.AddRangeAsync(products);
+                await context.SaveChangesAsync();
             }
-
-            // Seed initial products
-            var products = new List<Models.Product>
-            {
-                new Product { Id = 1, Name = "Wireless Mouse", Description = "Ergonomic wireless mouse with USB receiver", Price = 25.99m, Status = ProductStatusEnum.available, CreatedAt = DateTime.UtcNow },
-                new Product { Id = 2, Name = "Mechanical Keyboard", Description = "RGB backlit mechanical keyboard with blue switches", Price = 79.50m, Status = ProductStatusEnum.available, CreatedAt = DateTime.UtcNow },
-                new Product { Id = 3, Name = "Gaming Headset", Description = "Surround sound headset with noise-cancelling mic", Price = 59.99m, Status = ProductStatusEnum.available, CreatedAt = DateTime.UtcNow },
-                new Product { Id = 4, Name = "USB-C Charger", Description = "Fast charging USB-C wall adapter 65W", Price = 34.99m, Status = ProductStatusEnum.available, CreatedAt = DateTime.UtcNow },
-                new Product { Id = 5, Name = "Smartphone Stand", Description = "Adjustable aluminum stand for phones and tablets", Price = 15.00m, Status = ProductStatusEnum.available, CreatedAt = DateTime.UtcNow },
-                new Product { Id = 6, Name = "Portable SSD", Description = "1TB external SSD with USB 3.2", Price = 129.99m, Status = ProductStatusEnum.available, CreatedAt = DateTime.UtcNow },
-                new Product { Id = 7, Name = "Bluetooth Speaker", Description = "Waterproof portable speaker with deep bass", Price = 45.00m, Status = ProductStatusEnum.available, CreatedAt = DateTime.UtcNow },
-                new Product { Id = 8, Name = "Webcam HD", Description = "1080p webcam with built-in microphone", Price = 39.99m, Status = ProductStatusEnum.available, CreatedAt = DateTime.UtcNow },
-                new Product { Id = 9, Name = "Smartwatch", Description = "Fitness tracking smartwatch with heart rate monitor", Price = 199.00m, Status = ProductStatusEnum.available, CreatedAt = DateTime.UtcNow },
-                new Product { Id = 10, Name = "Laptop Backpack", Description = "Water-resistant backpack with padded laptop compartment", Price = 49.99m, Status = ProductStatusEnum.available, CreatedAt = DateTime.UtcNow }
-            };
-            context.Products.AddRange(products);
-            context.SaveChanges();
         }
     }
 }
+
