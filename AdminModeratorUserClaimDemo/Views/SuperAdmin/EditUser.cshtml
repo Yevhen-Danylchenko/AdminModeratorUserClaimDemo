@@ -1,0 +1,36 @@
+﻿@model AdminModeratorUserClaimDemo.ViewModels.EditUserViewModel
+
+@{
+    ViewData["Title"] = "Редагування користувача";
+}
+
+<h2>Редагування користувача</h2>
+
+<form asp-action="EditUser" method="post">
+    <input type="hidden" asp-for="Id" />
+
+    <div class="mb-3">
+        <label asp-for="UserName" class="form-label"></label>
+        <input asp-for="UserName" class="form-control" />
+        <span asp-validation-for="UserName" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Email" class="form-label"></label>
+        <input asp-for="Email" class="form-control" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Name" class="form-label"></label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="IsAdmin" class="form-label">Роль</label>
+        <select asp-for="IsAdmin" class="form-select"
+                asp-items="Html.GetEnumSelectList<UserEnum>()"></select>
+        <span asp-validation-for="IsAdmin" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-primary">Зберегти</button>
+</form>
+
+

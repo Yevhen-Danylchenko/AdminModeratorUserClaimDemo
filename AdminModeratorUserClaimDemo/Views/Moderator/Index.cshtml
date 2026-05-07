@@ -1,5 +1,43 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model IEnumerable<AdminModeratorUserClaimDemo.ViewModels.UserViewModel>
+
 @{
+    ViewData["Title"] = "Користувачі";
 }
+
+<h2>Список користувачів</h2>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Ім'я користувача</th>
+            <th>Email</th>
+            <th>Ім'я</th>
+            <th>Admin</th>
+            <th>Продукти</th>
+            <th>Дії</th>
+            <th>Дії</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var user in Model)
+        {
+            <tr>
+                <td>@user.UserName</td>
+                <td>@user.Email</td>
+                <td>@user.Name</td>
+                <td>@string.Join(", ", user.Roles)</td>
+                <td>@user.ProductNames</td>
+                <td>
+                    <a asp-action="EditUser" asp-route-id="@user.Id" class="btn btn-sm btn-primary">Редагувати</a>
+                    <form asp-action="DeleteUser" asp-route-id="@user.Id" method="post" style="display:inline">
+                        <button type="submit" class="btn btn-sm btn-danger">Видалити</button>
+                    </form>                   
+                </td>                
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a asp-action="Register" class="btn btn-success">Додати користувача</a>
+
+

@@ -1,5 +1,6 @@
 ﻿using AdminModeratorUserClaimDemo.Data;
 using AdminModeratorUserClaimDemo.Models;
+using AdminModeratorUserClaimDemo.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -11,30 +12,94 @@ namespace AdminModeratorUserClaimDemo.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<User> _userManager;
+        private readonly SignInManager<User> _signInManager;
 
-        public SuperAdminController(ApplicationDbContext context, UserManager<User> userManager)
+        public SuperAdminController(ApplicationDbContext context, UserManager<User> userManager, SignInManager<User> signInManager)
         {
             _context = context;
             _userManager = userManager;
+            _signInManager = signInManager;
         }
 
         // GET: SuperAdmin
         [Authorize(Roles = "SuperAdmin")]
         public IActionResult Index()
         {
-            var users = _context.Users.
-                Select(u => new
+            var users = _context.Users
+                .Select(u => new UserViewModel
                 {
-                    u.Id,
-                    u.UserName,
-                    u.Email,
-                    u.Name,
-                    u.IsAdmin,
-                    ProductName = u.Products != null ? u.Products.Name : "No Product"
+                    Id = u.Id,
+                    UserName = u.UserName,
+                    Email = u.Email,
+                    Name = u.Name,
+                    Roles = _userManager.GetRolesAsync(u).Result.ToList(),
+                    ProductNames = string.Join(", ", u.Products.Select(p => p.Name))
                 })
                 .ToList();
+
             return View(users);
         }
+
+        // GET: SuperAdmin/AssignRole/{id}
+        public async Task<IActionResult> AssignRole(string id, string role)
+        {
+             var user = await _userManager.FindByIdAsync(id);
+             if (user == null)
+             {
+                 return NotFound("Користувача не знайдено");
+             }
+
+             // додаємо користувача у роль
+             var result = await _userManager.AddToRoleAsync(user, role);
+             if (!result.Succeeded)
+             {
+                 return BadRequest("Не вдалося призначити роль: " +
+                                   string.Join(", ", result.Errors.Select(e => e.Description)));
+             }
+
+             return RedirectToAction("Index", "Home"); // після призначення повертаємось на список
+        }
+
+            //// GET: SuperAdmin/Login
+            //[HttpGet]
+            //public IActionResult Login()
+            //{
+            //    return View();
+            //}
+
+            //// POST: SuperAdmin/Login
+            //[HttpPost]
+            //public async Task<IActionResult> Login(string username, string password)
+            //{
+            //    var result = await _signInManager.PasswordSignInAsync(username, password, isPersistent: false, lockoutOnFailure: false);
+            //    if (result.Succeeded)
+            //    {
+            //        return RedirectToAction(nameof(Index));
+            //    }
+
+            //    ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+            //    return View();
+            //}
+
+        [HttpGet]
+        public IActionResult Login()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Login(LoginViewModel model)
+        {
+            if (!ModelState.IsValid) return View(model);
+
+            var result = await _signInManager.PasswordSignInAsync(model.UserName, model.Password, false, false);
+            if (result.Succeeded)
+                return RedirectToAction("Index", "SuperAdmin");
+
+            ModelState.AddModelError("", "Невірний логін або пароль");
+            return View(model);
+        }
+
 
         // GET: SuperAdmin/Register
         [HttpGet]
@@ -48,7 +113,7 @@ namespace AdminModeratorUserClaimDemo.Controllers
         // POST: SuperAdmin/Register
         [HttpPost]
         [Authorize(Roles = "SuperAdmin")]
-        public async Task<IActionResult> Register(User model)
+        public async Task<IActionResult> Register(User model, string password)
         {
             if (ModelState.IsValid)
             {
@@ -57,21 +122,17 @@ namespace AdminModeratorUserClaimDemo.Controllers
                     UserName = model.UserName,
                     Email = model.Email,
                     Name = model.Name,
-                    IsAdmin = model.IsAdmin,
-                    ProductId = model.ProductId
                 };
 
-                var result = await _userManager.CreateAsync(user, model.PasswordHash);
+                var result = await _userManager.CreateAsync(user, password);
                 if (result.Succeeded)
                 {
                     return RedirectToAction(nameof(Index));
                 }
-                else
+
+                foreach (var error in result.Errors)
                 {
-                    foreach (var error in result.Errors)
-                    {
-                        ModelState.AddModelError(string.Empty, error.Description);
-                    }
+                    ModelState.AddModelError(string.Empty, error.Description);
                 }
             }
 
@@ -82,24 +143,16 @@ namespace AdminModeratorUserClaimDemo.Controllers
         // GET: SuperAdmin/EditUser/5
         [HttpGet]
         [Authorize(Roles = "SuperAdmin")]
-        public IActionResult EditUser(string id)
+        public async Task<IActionResult> EditUser(string id)
         {
-            var user = _context.Users.Find(id);
+            var user = await _userManager.FindByIdAsync(id);
             if (user == null)
             {
                 return NotFound();
             }
-            var model = new User
-            {
-                Id = user.Id,
-                UserName = user.UserName,
-                Email = user.Email,
-                Name = user.Name,
-                IsAdmin = user.IsAdmin,
-                ProductId = user.ProductId
-            };
-            ViewBag.Products = new SelectList(_context.Products, "Id", "Name", user.ProductId);
-            return View(model);
+
+            ViewBag.Products = new SelectList(_context.Products, "Id", "Name", user.Products?.FirstOrDefault()?.Id);
+            return View(user);
         }
 
         // POST: SuperAdmin/EditUser/5
@@ -123,24 +176,20 @@ namespace AdminModeratorUserClaimDemo.Controllers
                 user.UserName = model.UserName;
                 user.Email = model.Email;
                 user.Name = model.Name;
-                user.IsAdmin = model.IsAdmin;
-                user.ProductId = model.ProductId;
 
                 var result = await _userManager.UpdateAsync(user);
                 if (result.Succeeded)
                 {
                     return RedirectToAction(nameof(Index));
                 }
-                else
+
+                foreach (var error in result.Errors)
                 {
-                    foreach (var error in result.Errors)
-                    {
-                        ModelState.AddModelError(string.Empty, error.Description);
-                    }
+                    ModelState.AddModelError(string.Empty, error.Description);
                 }
             }
 
-            ViewBag.Products = new SelectList(_context.Products, "Id", "Name", model.ProductId);
+            ViewBag.Products = new SelectList(_context.Products, "Id", "Name");
             return View(model);
         }
 
@@ -154,18 +203,11 @@ namespace AdminModeratorUserClaimDemo.Controllers
             {
                 return NotFound();
             }
+
             var result = await _userManager.DeleteAsync(user);
-            if (result.Succeeded)
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            else
-            {
-                // Handle deletion errors if necessary
-                return RedirectToAction(nameof(Index));
-            }
+            return RedirectToAction(nameof(Index));
         }
     }
-
 }
+
 

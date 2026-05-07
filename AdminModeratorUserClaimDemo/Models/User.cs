@@ -7,12 +7,9 @@ namespace AdminModeratorUserClaimDemo.Models
     {
         [Required]
         [StringLength(100)]
-        public string Name { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;        
 
-        [Required]
-        public UserEnum IsAdmin { get; set; } = UserEnum.User;
-
-        public int? ProductId { get; set; }
-        public Product? Products { get; set; } 
+        // Навігаційна властивість: один користувач → багато продуктів
+        public ICollection<Product> Products { get; set; } = new List<Product>();
     }
 }

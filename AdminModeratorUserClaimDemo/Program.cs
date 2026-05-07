@@ -28,23 +28,23 @@ namespace AdminModeratorUserClaimDemo
                 .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
+            builder.Services.ConfigureApplicationCookie(options =>
+            {
+                options.LoginPath = "/SuperAdmin/Login";
+            });
+
             var app = builder.Build();
 
             using (var scope = app.Services.CreateScope())
             {
                 var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                db.Database.Migrate();
 
-                // Призначаємо роль у DbInitializer
-                DbInitializer.Seed(db);
+                await db.Database.MigrateAsync();
 
                 var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
                 var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
 
-                await DbInitializer.SeedSuperAdminAsync(userManager, roleManager);
-                //var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-                //if (!await roleManager.RoleExistsAsync("Admin"))
-                //    await roleManager.CreateAsync(new IdentityRole("Admin"));
+                await DbInitializer.SeedAsync(db, userManager, roleManager);
             }
 
             // Configure the HTTP request pipeline.

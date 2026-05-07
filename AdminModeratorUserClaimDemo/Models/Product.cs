@@ -9,5 +9,9 @@
         public ProductStatusEnum Status { get; set; } = ProductStatusEnum.available;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        // Зовнішній ключ до користувача
+        public string? UserId { get; set; }
+        public User? User { get; set; }
     }
 }
