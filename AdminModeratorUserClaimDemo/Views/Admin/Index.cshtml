@@ -14,7 +14,8 @@
             <th>Ім'я</th>
             <th>Admin</th>
             <th>Продукти</th>
-            <th></th>
+            <th>Дії</th>
+            <th>Дії</th>
         </tr>
     </thead>
     <tbody>
@@ -32,6 +33,10 @@
                         <button type="submit" class="btn btn-sm btn-danger">Видалити</button>
                     </form>
                 </td>
+                <td>
+                    <a asp-controller="Admin" asp-action="AssignRole" asp-route-id="@user.Id" asp-route-role="Moderator" class="btn btn-sm btn-success">Зробити Модератором</a> 
+                </td>
+      
             </tr>
         }
     </tbody>

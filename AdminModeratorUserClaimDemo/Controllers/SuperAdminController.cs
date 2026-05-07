@@ -87,6 +87,19 @@ namespace AdminModeratorUserClaimDemo.Controllers
             return View();
         }
 
+        //[HttpPost]
+        //public async Task<IActionResult> Login(LoginViewModel model)
+        //{
+        //    if (!ModelState.IsValid) return View(model);
+
+        //    var result = await _signInManager.PasswordSignInAsync(model.UserName, model.Password, false, false);
+        //    if (result.Succeeded)
+        //        return RedirectToAction("Index", "SuperAdmin");
+
+        //    ModelState.AddModelError("", "Невірний логін або пароль");
+        //    return View(model);
+        //}
+
         [HttpPost]
         public async Task<IActionResult> Login(LoginViewModel model)
         {
@@ -94,11 +107,24 @@ namespace AdminModeratorUserClaimDemo.Controllers
 
             var result = await _signInManager.PasswordSignInAsync(model.UserName, model.Password, false, false);
             if (result.Succeeded)
-                return RedirectToAction("Index", "SuperAdmin");
+            {
+                var user = await _userManager.FindByNameAsync(model.UserName);
+                var roles = await _userManager.GetRolesAsync(user);
+
+                if (roles.Contains("SuperAdmin"))
+                    return RedirectToAction("Index", "SuperAdmin");
+                else if (roles.Contains("Admin"))
+                    return RedirectToAction("Index", "Admin");
+                else if (roles.Contains("Moderator"))
+                    return RedirectToAction("Index", "Moderator");
+                else
+                    return RedirectToAction("Index", "Home"); // або інша сторінка для User
+            }
 
             ModelState.AddModelError("", "Невірний логін або пароль");
             return View(model);
         }
+
 
 
         // GET: SuperAdmin/Register
@@ -141,6 +167,59 @@ namespace AdminModeratorUserClaimDemo.Controllers
         }
 
         // GET: SuperAdmin/EditUser/5
+        //[HttpGet]
+        //[Authorize(Roles = "SuperAdmin")]
+        //public async Task<IActionResult> EditUser(string id)
+        //{
+        //    var user = await _userManager.FindByIdAsync(id);
+        //    if (user == null)
+        //    {
+        //        return NotFound();
+        //    }
+
+        //    ViewBag.Products = new SelectList(_context.Products, "Id", "Name", user.Products?.FirstOrDefault()?.Id);
+        //    return View(user);
+        //}
+
+        // POST: SuperAdmin/EditUser/5
+        //[HttpPost]
+        //[Authorize(Roles = "SuperAdmin")]
+        //public async Task<IActionResult> EditUser(string id, User model)
+        //{
+        //    if (id != model.Id)
+        //    {
+        //        return NotFound();
+        //    }
+
+        //    if (ModelState.IsValid)
+        //    {
+        //        var user = await _userManager.FindByIdAsync(id);
+        //        if (user == null)
+        //        {
+        //            return NotFound();
+        //        }
+
+        //        user.UserName = model.UserName;
+        //        user.Email = model.Email;
+        //        user.Name = model.Name;
+
+        //        var result = await _userManager.UpdateAsync(user);
+        //        if (result.Succeeded)
+        //        {
+        //            return RedirectToAction(nameof(Index));
+        //        }
+
+        //        foreach (var error in result.Errors)
+        //        {
+        //            ModelState.AddModelError(string.Empty, error.Description);
+        //        }
+        //    }
+
+        //    ViewBag.Products = new SelectList(_context.Products, "Id", "Name");
+        //    return View(model);
+        //}
+
+        // GET: SuperAdmin/EditUser/5
         [HttpGet]
         [Authorize(Roles = "SuperAdmin")]
         public async Task<IActionResult> EditUser(string id)
@@ -151,14 +230,22 @@ namespace AdminModeratorUserClaimDemo.Controllers
                 return NotFound();
             }
 
-            ViewBag.Products = new SelectList(_context.Products, "Id", "Name", user.Products?.FirstOrDefault()?.Id);
-            return View(user);
+            var model = new EditUserViewModel
+            {
+                Id = user.Id,
+                UserName = user.UserName,
+                Email = user.Email,
+                Name = user.Name,
+            };
+
+            ViewBag.Products = new SelectList(_context.Products, "Id", "Name");
+            return View(model);
         }
 
         // POST: SuperAdmin/EditUser/5
         [HttpPost]
         [Authorize(Roles = "SuperAdmin")]
-        public async Task<IActionResult> EditUser(string id, User model)
+        public async Task<IActionResult> EditUser(string id, EditUserViewModel model)
         {
             if (id != model.Id)
             {
@@ -175,7 +262,7 @@ namespace AdminModeratorUserClaimDemo.Controllers
 
                 user.UserName = model.UserName;
                 user.Email = model.Email;
-                user.Name = model.Name;
+                user.Name = model.Name;                
 
                 var result = await _userManager.UpdateAsync(user);
                 if (result.Succeeded)
