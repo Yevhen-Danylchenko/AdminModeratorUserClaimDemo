@@ -14,12 +14,15 @@ namespace AdminModeratorUserClaimDemo.Controllers
         private readonly ApplicationDbContext _context;
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
 
-        public AdminController(ApplicationDbContext context, UserManager<User> userManager, SignInManager<User> signInManager)
+        public AdminController(ApplicationDbContext context, UserManager<User> userManager, SignInManager<User> signInManager, RoleManager<IdentityRole> roleManager)
         {
             _context = context;
             _userManager = userManager;
             _signInManager = signInManager;
+            _roleManager = roleManager;
+
         }
 
         [Authorize(Roles = "Admin,Moderator")]
@@ -66,6 +69,63 @@ namespace AdminModeratorUserClaimDemo.Controllers
         }
 
         // GET: Admin/Register
+        //[HttpGet]
+        //[Authorize(Roles = "Admin,Moderator")]
+        //public IActionResult Register()
+        //{
+        //    return View();
+        //}
+
+        //// POST: Admin/Register
+        //[HttpPost]
+        //[Authorize(Roles = "Admin,Moderator")]
+        //public async Task<IActionResult> Register(User model, string password)
+        //{
+        //    if (ModelState.IsValid)
+        //    {
+        //        var user = new User
+        //        {
+        //            UserName = model.UserName,
+        //            Email = model.Email,
+        //            Name = model.Name,
+        //        };
+
+        //        var result = await _userManager.CreateAsync(user, password);
+        //        if (result.Succeeded)
+        //        {
+        //            return RedirectToAction(nameof(Index));
+        //        }
+
+        //        foreach (var error in result.Errors)
+        //        {
+        //            ModelState.AddModelError(string.Empty, error.Description);
+        //        }
+        //    }
+
+        //    return View(model);
+        //}
+
+        // GET: Admin/AssignRole/{id}
+        public async Task<IActionResult> AssignRole(string id, string role)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null)
+            {
+                return NotFound("Користувача не знайдено");
+            }
+
+            // додаємо користувача у роль
+            var result = await _userManager.AddToRoleAsync(user, role);
+            if (!result.Succeeded)
+            {
+                return BadRequest("Не вдалося призначити роль: " +
+                                  string.Join(", ", result.Errors.Select(e => e.Description)));
+            }
+
+            return RedirectToAction("Index", "Home"); // після призначення повертаємось на список
+        }
+
+        // GET: Admin/Register
         [HttpGet]
         [Authorize(Roles = "Admin,Moderator")]
         public IActionResult Register()
@@ -76,7 +136,7 @@ namespace AdminModeratorUserClaimDemo.Controllers
         // POST: Admin/Register
         [HttpPost]
         [Authorize(Roles = "Admin,Moderator")]
-        public async Task<IActionResult> Register(User model, string password)
+        public async Task<IActionResult> Register(RegisterViewModel model)
         {
             if (ModelState.IsValid)
             {
@@ -84,12 +144,24 @@ namespace AdminModeratorUserClaimDemo.Controllers
                 {
                     UserName = model.UserName,
                     Email = model.Email,
-                    Name = model.Name,
+                    Name = model.Name
                 };
 
-                var result = await _userManager.CreateAsync(user, password);
+                var result = await _userManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
+                    // визначаємо роль з enum
+                    string roleName = model.IsAdmin.ToString();
+
+                    // створюємо роль якщо її ще нема
+                    if (!await _roleManager.RoleExistsAsync(roleName))
+                    {
+                        await _roleManager.CreateAsync(new IdentityRole(roleName));
+                    }
+
+                    // додаємо користувача до ролі
+                    await _userManager.AddToRoleAsync(user, roleName);
+
                     return RedirectToAction(nameof(Index));
                 }
 
