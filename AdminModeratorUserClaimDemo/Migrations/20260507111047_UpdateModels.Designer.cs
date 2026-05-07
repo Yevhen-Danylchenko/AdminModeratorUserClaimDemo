@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AdminModeratorUserClaimDemo.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260506091203_UpdateModels")]
+    [Migration("20260507111047_UpdateModels")]
     partial class UpdateModels
     {
         /// <inheritdoc />
@@ -70,9 +70,6 @@ namespace AdminModeratorUserClaimDemo.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("EmailConfirmed")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("IsAdmin")
                         .HasColumnType("INTEGER");
 
                     b.Property<bool>("LockoutEnabled")

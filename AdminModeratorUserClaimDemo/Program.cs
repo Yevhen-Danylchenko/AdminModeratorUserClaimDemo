@@ -28,6 +28,11 @@ namespace AdminModeratorUserClaimDemo
                 .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
+            builder.Services.ConfigureApplicationCookie(options =>
+            {
+                options.LoginPath = "/SuperAdmin/Login";
+            });
+
             var app = builder.Build();
 
             using (var scope = app.Services.CreateScope())
@@ -60,7 +65,7 @@ namespace AdminModeratorUserClaimDemo
             app.MapStaticAssets();
             app.MapControllerRoute(
                 name: "default",
-                pattern: "{controller=SuperAdmin}/{action=Login}/{id?}")
+                pattern: "{controller=Home}/{action=Index}/{id?}")
                 .WithStaticAssets();
 
             app.Run();

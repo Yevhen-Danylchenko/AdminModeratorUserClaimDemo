@@ -34,7 +34,8 @@ namespace AdminModeratorUserClaimDemo.Data
                 {
                     UserName = superAdminEmail,
                     Email = superAdminEmail,
-                    EmailConfirmed = true
+                    EmailConfirmed = true,
+                    Name = "Super Admin"
                 };
 
                 var result = await userManager.CreateAsync(superAdminUser, "SuperAdmin123!");
@@ -48,6 +49,60 @@ namespace AdminModeratorUserClaimDemo.Data
             if (!await userManager.IsInRoleAsync(superAdminUser, "SuperAdmin"))
             {
                 await userManager.AddToRoleAsync(superAdminUser, "SuperAdmin");
+            }
+
+            // --- Admin користувач ---
+            var adminEmail = "admin@ukr.net";
+            var adminUser = await userManager.FindByEmailAsync(adminEmail);
+
+            if (adminUser == null)
+            {
+                adminUser = new User
+                {
+                    UserName = adminEmail,
+                    Email = adminEmail,
+                    EmailConfirmed = true,
+                    Name = "Admin User"
+                };
+
+                var result = await userManager.CreateAsync(adminUser, "Admin123!");
+                if (!result.Succeeded)
+                {
+                    throw new Exception("Не вдалося створити Admin користувача: " +
+                                        string.Join(", ", result.Errors.Select(e => e.Description)));
+                }
+            }
+
+            if (!await userManager.IsInRoleAsync(adminUser, "Admin"))
+            {
+                await userManager.AddToRoleAsync(adminUser, "Admin");
+            }
+
+            // --- Moderator користувач ---
+            var moderatorEmail = "moderator@ukr.net";
+            var moderatorUser = await userManager.FindByEmailAsync(moderatorEmail);
+
+            if (moderatorUser == null)
+            {
+                moderatorUser = new User
+                {
+                    UserName = moderatorEmail,
+                    Email = moderatorEmail,
+                    EmailConfirmed = true,
+                    Name = "Moderator User"
+                };
+
+                var result = await userManager.CreateAsync(moderatorUser, "Moderator123!");
+                if (!result.Succeeded)
+                {
+                    throw new Exception("Не вдалося створити Moderator користувача: " +
+                                        string.Join(", ", result.Errors.Select(e => e.Description)));
+                }
+            }
+
+            if (!await userManager.IsInRoleAsync(moderatorUser, "Moderator"))
+            {
+                await userManager.AddToRoleAsync(moderatorUser, "Moderator");
             }
 
             // --- Продукти ---
@@ -73,4 +128,5 @@ namespace AdminModeratorUserClaimDemo.Data
         }
     }
 }
+
 

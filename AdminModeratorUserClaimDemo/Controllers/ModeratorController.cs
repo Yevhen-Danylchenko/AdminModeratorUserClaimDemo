@@ -34,7 +34,6 @@ namespace AdminModeratorUserClaimDemo.Controllers
                     UserName = u.UserName,
                     Email = u.Email,
                     Name = u.Name,
-                    IsAdmin = u.IsAdmin,
                     ProductNames = u.Products.Any()
                         ? string.Join(", ", u.Products.Select(p => p.Name))
                         : "No Products"
@@ -65,7 +64,6 @@ namespace AdminModeratorUserClaimDemo.Controllers
                     UserName = model.UserName,
                     Email = model.Email,
                     Name = model.Name,
-                    IsAdmin = model.IsAdmin
                 };
 
                 var result = await _userManager.CreateAsync(user, password);
@@ -118,7 +116,6 @@ namespace AdminModeratorUserClaimDemo.Controllers
                 user.UserName = model.UserName;
                 user.Email = model.Email;
                 user.Name = model.Name;
-                user.IsAdmin = model.IsAdmin;
 
                 var result = await _userManager.UpdateAsync(user);
                 if (result.Succeeded)

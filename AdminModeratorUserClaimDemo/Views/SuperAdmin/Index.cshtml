@@ -22,13 +22,17 @@
             <tr>
                 <td>@user.UserName</td>
                 <td>@user.Email</td>
-                <td>@(user.IsAdmin == UserEnum.Admin ? "Так" : "Ні")</td>
+                <td>@string.Join(", ", user.Roles)</td>
                 <td>@user.ProductNames</td>
                 <td>
                     <a asp-action="EditUser" asp-route-id="@user.Id" class="btn btn-sm btn-primary">Редагувати</a>
                     <form asp-action="DeleteUser" asp-route-id="@user.Id" method="post" style="display:inline">
                         <button type="submit" class="btn btn-sm btn-danger">Видалити</button>
                     </form>
+                </td>
+                <td>
+                    <a asp-controller="SuperAdmin" asp-action="AssignRole" asp-route-id="@user.Id" asp-route-role="Admin" class="btn btn-sm btn-success">Зробити Адміном</a>
+                    <a asp-controller="SuperAdmin" asp-action="AssignRole" asp-route-id="@user.Id" asp-route-role="Moderator" class="btn btn-sm btn-warning">Зробити Модератором</a>
                 </td>
             </tr>
         }

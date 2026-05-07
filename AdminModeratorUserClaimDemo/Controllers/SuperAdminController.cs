@@ -32,7 +32,7 @@ namespace AdminModeratorUserClaimDemo.Controllers
                     UserName = u.UserName,
                     Email = u.Email,
                     Name = u.Name,
-                    IsAdmin = u.IsAdmin,
+                    Roles = _userManager.GetRolesAsync(u).Result.ToList(),
                     ProductNames = string.Join(", ", u.Products.Select(p => p.Name))
                 })
                 .ToList();
@@ -40,27 +40,46 @@ namespace AdminModeratorUserClaimDemo.Controllers
             return View(users);
         }
 
+        // GET: SuperAdmin/AssignRole/{id}
+        public async Task<IActionResult> AssignRole(string id, string role)
+        {
+             var user = await _userManager.FindByIdAsync(id);
+             if (user == null)
+             {
+                 return NotFound("Користувача не знайдено");
+             }
 
-        //// GET: SuperAdmin/Login
-        //[HttpGet]
-        //public IActionResult Login()
-        //{
-        //    return View();
-        //}
+             // додаємо користувача у роль
+             var result = await _userManager.AddToRoleAsync(user, role);
+             if (!result.Succeeded)
+             {
+                 return BadRequest("Не вдалося призначити роль: " +
+                                   string.Join(", ", result.Errors.Select(e => e.Description)));
+             }
 
-        //// POST: SuperAdmin/Login
-        //[HttpPost]
-        //public async Task<IActionResult> Login(string username, string password)
-        //{
-        //    var result = await _signInManager.PasswordSignInAsync(username, password, isPersistent: false, lockoutOnFailure: false);
-        //    if (result.Succeeded)
-        //    {
-        //        return RedirectToAction(nameof(Index));
-        //    }
+             return RedirectToAction("Index", "Home"); // після призначення повертаємось на список
+        }
 
-        //    ModelState.AddModelError(string.Empty, "Invalid login attempt.");
-        //    return View();
-        //}
+            //// GET: SuperAdmin/Login
+            //[HttpGet]
+            //public IActionResult Login()
+            //{
+            //    return View();
+            //}
+
+            //// POST: SuperAdmin/Login
+            //[HttpPost]
+            //public async Task<IActionResult> Login(string username, string password)
+            //{
+            //    var result = await _signInManager.PasswordSignInAsync(username, password, isPersistent: false, lockoutOnFailure: false);
+            //    if (result.Succeeded)
+            //    {
+            //        return RedirectToAction(nameof(Index));
+            //    }
+
+            //    ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+            //    return View();
+            //}
 
         [HttpGet]
         public IActionResult Login()
@@ -103,7 +122,6 @@ namespace AdminModeratorUserClaimDemo.Controllers
                     UserName = model.UserName,
                     Email = model.Email,
                     Name = model.Name,
-                    IsAdmin = model.IsAdmin
                 };
 
                 var result = await _userManager.CreateAsync(user, password);
@@ -158,7 +176,6 @@ namespace AdminModeratorUserClaimDemo.Controllers
                 user.UserName = model.UserName;
                 user.Email = model.Email;
                 user.Name = model.Name;
-                user.IsAdmin = model.IsAdmin;
 
                 var result = await _userManager.UpdateAsync(user);
                 if (result.Succeeded)
